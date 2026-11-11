@@ -8,9 +8,12 @@ class MyHomePage extends StatelessWidget {
   final String kelas = "PBP A";
 
   final List<ItemHomepage> items = [
-    ItemHomepage("Lihat Proyek", Icons.folder),
-    ItemHomepage("Tambah Proyek", Icons.add_circle),
-    ItemHomepage("Logout", Icons.logout),
+    ItemHomepage("Lihat Proyek", Icons.folder, Colors.blue[700]!),
+    ItemHomepage("Lihat Skills", Icons.folder, Colors.red[700]!),
+    ItemHomepage("Lihat Experience", Icons.folder, Colors.yellow[700]!),
+    ItemHomepage("Tambah Proyek", Icons.add_circle, Colors.green[700]!),
+    ItemHomepage("Tambah Experience", Icons.add_circle, Colors.brown[700]!),
+    ItemHomepage("Logout", Icons.logout, Colors.grey[700]!),
   ];
 
     @override
@@ -29,11 +32,12 @@ class MyHomePage extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       // Body halaman utama dengan padding di sekelilingnya.
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
             // Baris horizontal untuk menampilkan 3 InfoCard secara sejajar.
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -54,6 +58,7 @@ class MyHomePage extends StatelessWidget {
                     padding: EdgeInsets.only(top: 16.0),
                     child: Text(
                       'Selamat datang di MyPortfolio Mobile!',
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18.0,
@@ -77,12 +82,14 @@ class MyHomePage extends StatelessWidget {
                 ],
               ),
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
+       
 
 class InfoCard extends StatelessWidget {
   // Kartu informasi yang menampilkan judul (title) dan isi (content).
@@ -108,7 +115,7 @@ class InfoCard extends StatelessWidget {
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8.0),
-            Text(content),
+            Text(content, textAlign: TextAlign.center,),
           ],
         ),
       ),
@@ -125,16 +132,21 @@ class ItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       // Menggunakan warna sekunder dari skema tema aplikasi.
-      color: Theme.of(context).colorScheme.secondary,
+      color: item.color,
       borderRadius: BorderRadius.circular(12),
+      elevation: 2.0,
       child: InkWell(
+        borderRadius: BorderRadius.circular(12),
         // Aksi ketika kartu ditekan oleh pengguna.
         onTap: () {
           // Menampilkan SnackBar dengan pesan interaktif.
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(content: Text("Kamu telah menekan tombol ${item.name}!"))
+              SnackBar(content: Text("Kamu telah menekan tombol ${item.name}!"),
+              backgroundColor: item.color,
+              behavior: SnackBarBehavior.floating,
+              ),
             );
         },
         child: Container(
@@ -166,6 +178,7 @@ class ItemCard extends StatelessWidget {
 class ItemHomepage {
   final String name;
   final IconData icon;
+  final Color color;
 
-  ItemHomepage(this.name, this.icon);
+  ItemHomepage(this.name, this.icon, this.color);
 }
