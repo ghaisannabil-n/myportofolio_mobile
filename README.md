@@ -77,4 +77,4 @@ Tidak bisa jikalau hanya mengandalkan hot reload, dan harus melakukan hot restar
 `AI DISCLOSURE`
 Tools yang digunakan adalah Gemini, strategi prompting adalah memberikan konteks terhadap apa yang ingin saya lakukan, lalu memberikan penjelasan tambahan mengenai apa yang telah saya inisiasi pada project ini, lalu memberi clue untuk fitur tambahan yang harus di-inisiasi sehingga dapat memberikan output yang terbaik (contoh: bagaimana menambah fitur scroll pada flutter dan)
 
-Dengan bagian yang dibantu AI salah satu nya adalah menambah fitur scroll untuk UI, dan bagaimana syntax untuk mengubah warna tiap card. Sehingga memberikan saya pengetahuan yang baru bahwa, penggunaan Column di GridView.count akan menyebabkan RenderFlex overflow.
+Dengan bagian yang dibantu AI salah satu nya adalah menambah fitur scroll untuk UI, dan bagaimana syntax untuk mengubah warna tiap card. Sehingga memberikan saya pengetahuan yang baru bahwa, penggunaan Column di GridView.count akan menyebabkan RenderFlex overflow.33
