@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/screens/menu.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
+import 'package:myportofolio_mobile/screens/experience_form.dart';
 
 class LeftDrawer extends StatelessWidget {
   const LeftDrawer({super.key});
@@ -55,10 +56,23 @@ class LeftDrawer extends StatelessWidget {
             onTap: () {
               Navigator.pushReplacement(
                 context, 
-                MaterialPageRoute(builder: (context) => const ProjectFormPage()),
+                MaterialPageRoute(builder: (context) => const ProjectFormPage(),
+                ),
               );
             },
-          )
+          ),
+          ListTile(
+            leading: const Icon(Icons.work_history_outlined),
+            title: const Text('Add Experience'),
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ExperienceFormPage(),
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
