@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:myportofolio_mobile/screens/menu.dart'; // untuk ItemHomepage
+import 'package:myportofolio_mobile/screens/experience_form.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart'; // untuk ProjectFormPage
+
+class ItemHomepage {
+  final String name;
+  final IconData icon;
+  final Color color;
+
+  ItemHomepage(this.name, this.icon, this.color);
+}
 
 class ItemCard extends StatelessWidget {
   final ItemHomepage item;
@@ -33,6 +41,13 @@ class ItemCard extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const ProjectFormPage()),
+            );
+          }else if(item.name == "Tambah Experience") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ExperienceFormPage(),
+              ),
             );
           }
         },
