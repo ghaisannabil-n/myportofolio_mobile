@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/screens/experience_form.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart'; // untuk ProjectFormPage
+import 'package:myportofolio_mobile/screens/project_list_screen.dart';
+import 'package:myportofolio_mobile/services/auth_state.dart';
+import 'package:myportofolio_mobile/widgets/auth_guard.dart';
+import 'package:provider/provider.dart';
 
 class ItemHomepage {
   final String name;
@@ -24,7 +28,61 @@ class ItemCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         // Aksi ketika kartu ditekan oleh pengguna.
-        onTap: () {
+        onTap: () async {
+          if (item.name == "Lihat Proyek") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ProjectListScreen(),
+              ),
+            );
+            return;
+          }
+
+          if (item.name == "Tambah Proyek") {
+            final ok = await ensureLoggedIn(context);
+            if (!context.mounted || !ok) return;
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProjectFormPage()),
+            );
+            return;
+          }
+
+          if (item.name == "Tambah Experience") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ExperienceFormPage(),
+              ),
+            );
+            return;
+          }
+          if (item.name == "Logout") {
+            final authState = context.read<AuthState>();
+            if (!authState.isLoggedIn) {
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(
+                  const SnackBar(
+                    content: Text("Kamu belum login."),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              return;
+            }
+            await authState.logout();
+            if (!context.mounted) return;
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                const SnackBar(
+                  content: Text("Logout berhasil!"),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            return;
+          }
           // Menampilkan SnackBar dengan pesan interaktif.
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
@@ -35,21 +93,6 @@ class ItemCard extends StatelessWidget {
                 behavior: SnackBarBehavior.floating,
               ),
             );
-
-          // Navigate ke halaman yang sesuai
-          if (item.name == "Tambah Proyek") {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ProjectFormPage()),
-            );
-          }else if(item.name == "Tambah Experience") {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ExperienceFormPage(),
-              ),
-            );
-          }
         },
         child: Container(
           padding: const EdgeInsets.all(8),

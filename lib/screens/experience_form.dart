@@ -35,7 +35,10 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
     return "$year-$month-$day";
   }
 
-  Future<void> _selectDate(BuildContext context, {required bool isStart}) async {
+  Future<void> _selectDate(
+    BuildContext context, {
+    required bool isStart,
+  }) async {
     final DateTime now = DateTime.now();
     final DateTime initial = isStart
         ? (_startDate ?? now)
@@ -169,10 +172,8 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
                   initialValue: _employmentType,
                   items: _employmentTypes
                       .map(
-                        (type) => DropdownMenuItem(
-                          value: type,
-                          child: Text(type),
-                        ),
+                        (type) =>
+                            DropdownMenuItem(value: type, child: Text(type)),
                       )
                       .toList(),
                   onChanged: (String? newValue) {
@@ -216,7 +217,9 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
                               child: OutlinedButton.icon(
                                 onPressed: () =>
                                     _selectDate(context, isStart: false),
-                                icon: const Icon(Icons.event_available_outlined),
+                                icon: const Icon(
+                                  Icons.event_available_outlined,
+                                ),
                                 label: Text(
                                   "Selesai: ${_formatDate(_endDate)}",
                                 ),
@@ -226,7 +229,10 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
                         ),
                         if (fieldState.hasError)
                           Padding(
-                            padding: const EdgeInsets.only(top: 6.0, left: 12.0),
+                            padding: const EdgeInsets.only(
+                              top: 6.0,
+                              left: 12.0,
+                            ),
                             child: Text(
                               fieldState.errorText!,
                               style: TextStyle(
@@ -290,7 +296,8 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
                   validator: (String? value) {
                     if (value != null && value.trim().isNotEmpty) {
                       final uri = Uri.tryParse(value.trim());
-                      final isValidUrl = uri != null &&
+                      final isValidUrl =
+                          uri != null &&
                           (uri.scheme == 'http' || uri.scheme == 'https') &&
                           uri.host.isNotEmpty;
                       if (!isValidUrl) {
@@ -303,7 +310,7 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
               ),
 
               const SizedBox(height: 12),
-              
+
               Align(
                 alignment: Alignment.bottomCenter,
                 child: Padding(
@@ -319,8 +326,9 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
                       const SizedBox(width: 16),
                       ElevatedButton.icon(
                         style: ButtonStyle(
-                          backgroundColor:
-                              WidgetStateProperty.all(primaryColor),
+                          backgroundColor: WidgetStateProperty.all(
+                            primaryColor,
+                          ),
                           padding: WidgetStateProperty.all(
                             const EdgeInsets.symmetric(
                               horizontal: 24,
@@ -373,8 +381,10 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
                             );
                           }
                         },
-                        icon: const Icon(Icons.save_outlined,
-                            color: Colors.white),
+                        icon: const Icon(
+                          Icons.save_outlined,
+                          color: Colors.white,
+                        ),
                         label: const Text(
                           "Simpan",
                           style: TextStyle(color: Colors.white),
