@@ -10,7 +10,9 @@ import 'package:myportofolio_mobile/main.dart';
 import 'package:myportofolio_mobile/services/api_client.dart';
 
 void main() {
-  testWidgets('MyApp renders MyHomePage smoke test', (WidgetTester tester,) async {
+  testWidgets('MyApp renders MyHomePage smoke test', (
+    WidgetTester tester,
+  ) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(MyApp(apiClient: ApiClient()));
 
