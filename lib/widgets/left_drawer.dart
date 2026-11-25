@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/screens/menu.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
 import 'package:myportofolio_mobile/screens/experience_form.dart';
+import 'package:myportofolio_mobile/screens/experience_list_screen.dart';
 import 'package:myportofolio_mobile/screens/login_screen.dart';
 import 'package:myportofolio_mobile/screens/project_list_screen.dart';
 import 'package:myportofolio_mobile/services/auth_state.dart';
@@ -87,6 +88,18 @@ class LeftDrawer extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) => const ExperienceFormPage(),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.work_off_outlined),
+            title: const Text('View Experience'),
+            onTap: () {
+              Navigator.pushReplacement(
+                context, 
+                MaterialPageRoute<void>(
+                  builder: (context) => const ExperienceListScreen(),
                 ),
               );
             },

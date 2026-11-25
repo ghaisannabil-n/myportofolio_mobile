@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 import 'package:myportofolio_mobile/widgets/project_card.dart';
+import 'package:myportofolio_mobile/widgets/experience_card.dart';
 
 class MyHomePage extends StatelessWidget {
   MyHomePage({super.key});
@@ -77,6 +78,9 @@ class MyHomePage extends StatelessWidget {
                       // shrinkWrap agar ukuran kisi menyesuaikan tinggi konten anak.
                       shrinkWrap: true,
                       children: items.map((ItemHomepage item) {
+                        if (item.name == 'Lihat Experience' || item.name == 'Tambah Experience') {
+                          return ExperienceCard(item);
+                        }
                         return ItemCard(item);
                       }).toList(),
                     ),

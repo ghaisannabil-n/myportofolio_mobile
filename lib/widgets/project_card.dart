@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:myportofolio_mobile/screens/experience_form.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart'; // untuk ProjectFormPage
 import 'package:myportofolio_mobile/screens/project_list_screen.dart';
 import 'package:myportofolio_mobile/services/auth_state.dart';
@@ -49,15 +48,6 @@ class ItemCard extends StatelessWidget {
             return;
           }
 
-          if (item.name == "Tambah Experience") {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ExperienceFormPage(),
-              ),
-            );
-            return;
-          }
           if (item.name == "Logout") {
             final authState = context.read<AuthState>();
             if (!authState.isLoggedIn) {
