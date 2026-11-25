@@ -5,6 +5,7 @@ part 'experience.g.dart';
 @JsonSerializable(fieldRename: FieldRename.snake)
 class Experience {
   const Experience({
+    required this.title,
     required this.role,
     required this.organization,
     required this.startDate,
@@ -18,6 +19,7 @@ class Experience {
 
   @JsonKey(includeToJson: false)
   final String? id;
+  final String title;
   final String role;
   final String organization;
   final String startDate;
