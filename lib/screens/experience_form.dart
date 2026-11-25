@@ -196,7 +196,7 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
                 child: TextFormField(
                   decoration: InputDecoration(
                     hintText: "Contoh: Software Engineer Intern",
-                    labelText: "Posisi / Peran *",
+                    labelText: "Title *",
                     prefixIcon: const Icon(Icons.badge_outlined),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.0),
@@ -215,8 +215,7 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
                 padding: const EdgeInsets.all(8.0),
                 child: DropdownButtonFormField<String>(
                   decoration: InputDecoration(
-                    hintText: "Title *",
-                    labelText: "Nama Organisasi / Perusahaan *",
+                    labelText: "Category*",
                     prefixIcon: const Icon(Icons.category_outlined),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.0),
