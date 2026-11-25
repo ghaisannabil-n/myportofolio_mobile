@@ -42,7 +42,7 @@ class Experience {
   @JsonKey(includeToJson: false, defaultValue: false)
   final bool isStarred;
 
-  @JsonKey(defaultValue: '')
+  @JsonKey(includeToJson: false, defaultValue: '')
   final String experienceImg;
 
   @JsonKey(includeToJson: false, defaultValue: '')
