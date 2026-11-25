@@ -1,20 +1,40 @@
-# myportofolio_mobile
+# MyPortfolio Mobile
 
-A new Flutter project.
+## Tautan Backend & API
+- **Repositori Backend Django:** https://github.com/ghaisannabil-n/myportofolio
+- **URL API Deployed:** http://localhost:8000
 
-## Getting Started
+## Endpoint yang Diintegrasikan
 
-This project is a starting point for a Flutter application.
+`GET` `/api/v1/projects/` Publik Mengambil daftar proyek 
+`POST` `/api/v1/projects/` `Authorization: Token <key>` Menambah proyek baru 
+`GET` `/api/v1/experiences/` Publik Mengambil daftar pengalaman 
+`POST` `/api/v1/experiences/` `Authorization: Token <key>` Menambah pengalaman baru 
+`POST` `/api/v1/auth/token/` Publik Login dan mendapatkan token DRF 
+`POST` `/api/v1/auth/logout/` `Authorization: Token <key>` Mencabut token sesi aktif 
 
-A few resources to get you started if this is your first Flutter project:
+## Instruksi Setup & Menjalankan Aplikasi
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+1. **Install dependensi Flutter:**
+   flutter pub get
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+2. **Generate berkas serialisasi JSON (`*.g.dart`):**
+   dart run build_runner build --delete-conflicting-outputs
+
+3. **Pastikan backend Django berjalan** 
+    python manage.py runserver
+
+4. **Jalankan aplikasi Flutter sesuai platform target:**
+   - **Chrome / Web:**
+     flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8000
+
+   - **Backend Deployed:**
+     flutter run --dart-define=API_BASE_URL=https://<>
+     
+5. **Menjalankan pemeriksaan statis & unit test:**
+   dart format --output=none --set-exit-if-changed .
+   flutter analyze
+   flutter test
 
 
 ## Tugas 7 ##
@@ -121,3 +141,31 @@ Sebagai contoh nilai yang ditolak oleh validasi adalah String yang berisikan spa
 Tools yang digunakan adalah Gemini, dengan Strategi Prompting untuk menyelesaikan hal hal yang harus di-isi pada rancangan ExperienceFormPage, dengan memuat terlebih dahulu yang sesuai dengan Field project, dan bagaimana untuk mengintegrasikan LeftDrawer pada saat membuat form yang baru. Bagian yang dibantu AI adalah gimana cara validasi showDatePicker, bagaimana merapihkan pada berkas lib/screens/ dan rancangan kerangka FormField, lalu pengisian experience_form.dart. 
 
 Keterbatasan AI adalah harus diberi konteks dengan apa yang ingin saya lakukan, daripada langsung menanyakan tanpa konteks. Melakukan perbaikan manual karena bentuk nya sama pada inisialisasi left_drawer.dart, project_card.dart yang sesuai implementasi dengan tutorial sebelumnya.
+
+
+## TUGAS 9 ##
+
+1. Penggunaan @JsonSerializable(fieldRename: FieldRename.snake) dan @JsonKey(includeToJson: false) memberikan *compile-time type safety* serta pemisahan yang jelas antara lapisan model data dan lapisan UI, dibandingkan menyusun Map<String, dynamic> mentah langsung di dalam UI yang rawan salah ketik key, dan duplikasi logika. FieldRename.snake secara otomatis memetakan konvensi penamaan camelCase di Dart ke konvensi snake_case pada Django REST Framework (`category_display`, `is_ongoing`, `star_count`, `starred_by_names`).
+
+@JsonKey(includeToJson: false) memastikan field yang ditetapkan atau dihitung oleh server tidak ikut dikirim pada payload `POST`. Pendekatan ini mencegah bug pengiriman field *read-only* seperti id dan experience_img dalam request `POST` yang dapat memicu penolakan validasi `400 Bad Request` di DRF, sekaligus mencegah `TypeError` saat deserialisasi ketika field opsional seperti thumbnail atau experience_img bernilai `null` melalui @JsonKey(defaultValue: '').
+
+2. `Future` yang diteruskan ke `FutureBuilder` harus diinisialisasi di dalam `initState()` dan bukan langsung di dalam `build()` karena metode `build()` dapat dipanggil berkali-kali oleh framework Flutter setiap terjadi perubahan state, animasi, rotasi layar, atau perubahan keyboard. Jika pemanggilan API ditempatkan di `build()`, setiap rebuild akan memicu permintaan HTTP baru secara berulang, membebani server, memboroskan jaringan, dan membuat tampilan terus berkedip kembali ke indikator loading. Dengan menyimpannya pada state di `initState()`, permintaan jaringan hanya terjadi ketika memang dibutuhkan.
+
+`ApiClient` sebaiknya melempar `ApiException(statusCode, message)` daripada mengembalikan `null` pada respons agar informasi status HTTP tetap terjaga. Dengan melempar exception, `FutureBuilder` dapat menangkap kegagalan melalui `snapshot.hasError` untuk menampilkan UI error beserta tombol *Retry*, dan `ExperienceFormPage` dapat membedakan status `401 Unauthorized` dari error validasi `400` atau gangguan server `5xx`.
+
+3. `SessionAuthentication` milik Django bersifat stateful karena menyimpan data sesi di sisi server dan mengandalkan *session cookie* beserta token CSRF yang dikirim otomatis oleh browser pada permintaan.  
+
+`TokenAuthentication` milik DRF bersifat stateless per permintaan dengan mengirimkan header eksplisit `Authorization: Token <key>` yang langsung diverifikasi terhadap tabel `authtoken_token` tanpa bergantung pada manajemen cookie maupun CSRF browser. 
+
+myportofolio_mobile menggunakan `TokenAuthentication` karena user mobile native tidak memiliki cookie jar browser bawaan dan mekanisme header token bekerja konsisten di Android maupun Flutter Web. `SessionAuthentication` tetap diaktifkan pada `REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"]` di backend Django agar aplikasi web Django, halaman Django Admin, dan DRF Browsable API tetap dapat digunakan secara normal melalui browser tanpa rusak.
+
+4.job `build` memanggil reusable workflow `VeryGoodOpenSource/very_good_workflows` yang di balik layar menjalankan langkah `setup` (`dart run build_runner build --delete-conflicting-outputs`), pemeriksaan pemformatan kode (`dart format`), analisis statis (`flutter analyze`), serta eksekusi unit/widget test (`flutter test`) beserta pengumpulan *code coverage* (mengecualikan `**/*.g.dart` dengan batas `min_coverage: 0`). 
+
+job `build_apk` menggunakan `needs: build` sehingga hanya berjalan setelah seluruh pemeriksaan pada job `build` lulus; job ini menginstall dependensi (`flutter pub get`), menghasilkan ulang kode (`build_runner`), mengompilasi APK Android release (`flutter build apk --release`), dan mengunggah `build/app/outputs/flutter-apk/app-release.apk` sebagai artefak `app-release-apk` menggunakan `actions/upload-artifact@v4`. 
+
+Berkas `*.g.dart` dimasukkan ke `.gitignore` karena merupakan artefak hasil generasi yang selalu dapat dibentuk ulang dari definisi model, sehingga menyimpannya di Git hanya akan memicu *merge conflict*. Pipeline CI tetap dapat menganalisis dan membangun aplikasi karena baik job `build` (melalui input `setup`) maupun job `build_apk` menjalankan `dart run build_runner build --delete-conflicting-outputs` secara otomatis sebelum analisis, pengujian, dan build APK.
+
+`AI DISCLOSURE`
+Tools yang digunakan adalah Gemini, dengan Strategi Prompting untuk menyelesaikan hal hal yang harus di-isi pada rancangan Experience, dengan memuat terlebih dahulu yang sesuai dengan models di backend django, lalu bagaimana untuk menginisiasi penambahan test file, penambahan syntax apa yang harus digunakan pada experience_detail_screen, experience_list_screen, dan penambahan experience_dart agar sesuai dengan yang di-inginkan dan ter integrasi dengan left_drawer
+
+Keterbatasan AI adalah harus diberi konteks dengan apa yang ingin saya lakukan, daripada langsung menanyakan tanpa konteks. Melakukan perbaikan manual pada Experience.dart karna kurang lebih mirip  dengan project.dart lalu perbaikan di main.dart
