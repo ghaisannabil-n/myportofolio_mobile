@@ -20,11 +20,10 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         Provider.value(value: apiClient),
-        // TODO: Register ChangeNotifierProvider creating AuthState(apiClient)
         ChangeNotifierProvider(create: (_) => AuthState(apiClient)),
       ],
       child: MaterialApp(
-        title: 'MyPorfolio',
+        title: 'MyPortfolio',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
           useMaterial3: true,

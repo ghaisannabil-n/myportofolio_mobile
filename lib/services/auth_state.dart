@@ -20,7 +20,7 @@ class AuthState extends ChangeNotifier {
     final current = _token;
     if (current == null) return;
 
-    // TODO: Call _apiClient.logout(token: current) inside a try/on ApiException/finally block.
+  
     // Always set _token = null and call notifyListeners() in finally,
     // even if the server request fails.
     try {

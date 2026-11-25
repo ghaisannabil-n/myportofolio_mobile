@@ -43,7 +43,6 @@ class ApiClient {
     Project project, {
     required String token,
   }) async {
-    // TODO: Send HTTP POST to /api/v1/projects/ with:
     // - headers: Accept, Content-Type (application/json; charset=UTF-8),
     //   and Authorization ('Token $token')
     // - body: jsonEncode(project.toJson())
@@ -64,7 +63,6 @@ class ApiClient {
   }
 
   Future<String> obtainToken(String username, String password) async {
-    // TODO: Send HTTP POST to /api/v1/auth/token/ with JSON body
     // {'username': username, 'password': password}.
     // Call _ensureSuccess(response) and return decoded['token'] as String.
     final response = await _client.post(
@@ -82,8 +80,6 @@ class ApiClient {
   }
 
   Future<void> logout({required String token}) async {
-    // TODO: Send HTTP POST to /api/v1/auth/logout/ with Authorization: 'Token $token'
-    // and call _ensureSuccess(response).
     final response = await _client.post(
       _uri('/api/v1/auth/logout/'),
       headers: {'Accept': 'application/json', 'Authorization': 'Token $token'},
