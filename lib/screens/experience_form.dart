@@ -215,7 +215,7 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
                 padding: const EdgeInsets.all(8.0),
                 child: DropdownButtonFormField<String>(
                   decoration: InputDecoration(
-                    hintText: "Contoh: Fakultas Ilmu Komputer UI",
+                    hintText: "Title *",
                     labelText: "Nama Organisasi / Perusahaan *",
                     prefixIcon: const Icon(Icons.category_outlined),
                     border: OutlineInputBorder(
