@@ -81,19 +81,22 @@ class LeftDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.work_history_outlined),
+            leading: const Icon(Icons.add_business_outlined),
             title: const Text('Add Experience'),
-            onTap: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
+            onTap: () async {
+              final navigator = Navigator.of(context);
+              Navigator.pop(context);
+              final ok = await ensureLoggedIn(navigator.context);
+              if (!ok || !navigator.mounted) return;
+              await navigator.push<void>(
+                MaterialPageRoute<void>(
                   builder: (context) => const ExperienceFormPage(),
                 ),
               );
             },
           ),
           ListTile(
-            leading: const Icon(Icons.work_off_outlined),
+            leading: const Icon(Icons.work_history_outlined),
             title: const Text('View Experience'),
             onTap: () {
               Navigator.pushReplacement(
