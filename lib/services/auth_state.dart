@@ -20,7 +20,6 @@ class AuthState extends ChangeNotifier {
     final current = _token;
     if (current == null) return;
 
-  
     // Always set _token = null and call notifyListeners() in finally,
     // even if the server request fails.
     try {

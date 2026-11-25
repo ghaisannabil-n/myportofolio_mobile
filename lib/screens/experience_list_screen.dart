@@ -92,9 +92,9 @@ class _ExperienceListScreenState extends State<ExperienceListScreen> {
               itemCount: experiences.length,
               itemBuilder: (context, index) {
                 final experience = experiences[index];
-                final period = experience.endDate.isEmpty
-                    ? '${experience.startDate} - Present'
-                    : '${experience.startDate} - ${experience.endDate}';
+                final categoryLabel = experience.categoryDisplay.isNotEmpty
+                    ? experience.categoryDisplay
+                    : experience.category;
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 10),
@@ -107,14 +107,21 @@ class _ExperienceListScreenState extends State<ExperienceListScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 4),
-                        Text(
-                          '${experience.role} • ${experience.organization}',
-                          style: Theme.of(context).textTheme.labelMedium,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          period,
-                          style: Theme.of(context).textTheme.bodySmall,
+                        Wrap(
+                          spacing: 8,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Text(
+                              categoryLabel,
+                              style: Theme.of(context).textTheme.labelMedium,
+                            ),
+                            if (experience.isOngoing)
+                              const Chip(
+                                label: Text('Ongoing'),
+                                visualDensity: VisualDensity.compact,
+                              ),
+                            Text('★ ${experience.starCount}'),
+                          ],
                         ),
                         if (experience.description.isNotEmpty) ...[
                           const SizedBox(height: 6),

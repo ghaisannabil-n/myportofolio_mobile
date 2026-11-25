@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
+import 'package:myportofolio_mobile/models/experience.dart';
+import 'package:myportofolio_mobile/screens/experience_list_screen.dart';
+import 'package:myportofolio_mobile/services/api_client.dart';
+import 'package:myportofolio_mobile/services/auth_state.dart';
+import 'package:myportofolio_mobile/widgets/auth_guard.dart';
+import 'package:provider/provider.dart';
 
 class ExperienceFormPage extends StatefulWidget {
   const ExperienceFormPage({super.key});
@@ -11,68 +17,153 @@ class ExperienceFormPage extends StatefulWidget {
 class _ExperienceFormPageState extends State<ExperienceFormPage> {
   final _formKey = GlobalKey<FormState>();
 
-  String _role = "";
-  String _organization = "";
-  String _employmentType = "Internship";
-  String _description = "";
-  String _proofLink = "";
-  DateTime? _startDate;
-  DateTime? _endDate;
+  static const Map<String, String> _categoryOptions = {
+    'internship': 'Internship',
+    'work': 'Work',
+    'organization': 'Organization',
+    'volunteer': 'Volunteer',
+    'academic': 'Academic',
+  };
 
-  final List<String> _employmentTypes = [
-    'Internship',
-    'Full-time',
-    'Part-time',
-    'Contract',
-    'Organization / Committee',
-  ];
+  String _title = '';
+  String _description = '';
+  String _category = _categoryOptions.keys.first;
+  String _thumbnail = '';
+  bool _isSubmitting = false;
 
-  String _formatDate(DateTime? date) {
-    if (date == null) return "Belum dipilih";
-    final year = date.year.toString();
-    final month = date.month.toString().padLeft(2, '0');
-    final day = date.day.toString().padLeft(2, '0');
-    return "$year-$month-$day";
+  String? _validateOptionalUrl(String? value) {
+    final trimmed = value?.trim() ?? '';
+    if (trimmed.isEmpty) return null;
+    final uri = Uri.tryParse(trimmed);
+    final isValid =
+        uri != null &&
+        (uri.scheme == 'http' || uri.scheme == 'https') &&
+        uri.host.isNotEmpty;
+    if (!isValid) {
+      return 'Masukkan format URL yang valid';
+    }
+    return null;
   }
 
-  Future<void> _selectDate(
-    BuildContext context, {
-    required bool isStart,
-  }) async {
-    final DateTime now = DateTime.now();
-    final DateTime initial = isStart
-        ? (_startDate ?? now)
-        : (_endDate ?? _startDate ?? now);
-
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: initial,
-      firstDate: DateTime(2015),
-      lastDate: DateTime(2030),
-    );
-
-    if (picked != null) {
-      setState(() {
-        if (isStart) {
-          _startDate = picked;
-        } else {
-          _endDate = picked;
+  String _friendlyErrorMessage(ApiException e) {
+    switch (e.statusCode) {
+      case 400:
+        return 'Data tidak valid (400). Periksa kembali isian formulir.';
+      case 403:
+        return 'Akses ditolak (403). Akun tidak memiliki izin.';
+      case 404:
+        return 'Endpoint tidak ditemukan (404).';
+      default:
+        if (e.statusCode >= 500) {
+          return 'Terjadi kesalahan pada server (${e.statusCode}). Coba lagi nanti.';
         }
-      });
+        return 'Gagal menyimpan pengalaman (${e.statusCode}).';
     }
   }
 
   void _resetForm() {
-    _formKey.currentState!.reset();
+    _formKey.currentState?.reset();
     setState(() {
-      _role = "";
-      _organization = "";
-      _employmentType = "Internship";
-      _description = "";
-      _proofLink = "";
-      _startDate = null;
-      _endDate = null;
+      _title = '';
+      _description = '';
+      _category = _categoryOptions.keys.first;
+      _thumbnail = '';
     });
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    final loggedIn = await ensureLoggedIn(context);
+    if (!mounted || !loggedIn) return;
+    final token = context.read<AuthState>().token;
+    if (token == null) return;
+    setState(() {
+      _isSubmitting = true;
+    });
+    final newExperience = Experience(
+      title: _title.trim(),
+      description: _description.trim(),
+      category: _category,
+      thumbnail: _thumbnail.trim(),
+    );
+    try {
+      final created = await context.read<ApiClient>().createExperience(
+        newExperience,
+        token: token,
+      );
+      if (!mounted) return;
+      final action = await showDialog<String>(
+        context: context,
+        builder: (dialogContext) {
+          final displayCategory = created.categoryDisplay.isNotEmpty
+              ? created.categoryDisplay
+              : created.category;
+          return AlertDialog(
+            title: const Text('Experience berhasil disimpan!'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Title: ${created.title}'),
+                  Text('Category: $displayCategory'),
+                  Text('Description: ${created.description}'),
+                  if (created.thumbnail.isNotEmpty)
+                    Text('Thumbnail: ${created.thumbnail}'),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, 'add_more'),
+                child: const Text('Tambah Lagi'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(dialogContext, 'view_list'),
+                child: const Text('Lihat Daftar'),
+              ),
+            ],
+          );
+        },
+      );
+      if (!mounted) return;
+      if (action == 'view_list') {
+        await Navigator.pushReplacement<void, void>(
+          context,
+          MaterialPageRoute<void>(builder: (_) => const ExperienceListScreen()),
+        );
+      } else {
+        _resetForm();
+      }
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      if (e.statusCode == 401) {
+        await context.read<AuthState>().logout();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Sesi login kedaluwarsa (401). Silakan login ulang.'),
+          ),
+        );
+        await ensureLoggedIn(context);
+      } else {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(_friendlyErrorMessage(e))));
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gagal terhubung ke server. Periksa koneksi Anda.'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
   }
 
   @override
@@ -111,284 +202,116 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                   ),
-                  onChanged: (String? value) {
-                    setState(() {
-                      _role = value ?? "";
-                    });
-                  },
-                  validator: (String? value) {
+                  onChanged: (value) => _title = value,
+                  validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return "Posisi atau peran tidak boleh kosong!";
-                    }
-                    if (value.trim().length < 3) {
-                      return "Posisi minimal terdiri dari 3 karakter!";
-                    }
-                    if (value.trim().length > 100) {
-                      return "Posisi maksimal 100 karakter!";
+                      return 'Title tidak boleh kosong!';
                     }
                     return null;
                   },
                 ),
               ),
-
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  decoration: InputDecoration(
-                    hintText: "Contoh: Fakultas Ilmu Komputer UI",
-                    labelText: "Nama Organisasi / Perusahaan *",
-                    prefixIcon: const Icon(Icons.business_outlined),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
-                  onChanged: (String? value) {
-                    setState(() {
-                      _organization = value ?? "";
-                    });
-                  },
-                  validator: (String? value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return "Nama organisasi tidak boleh kosong!";
-                    }
-                    if (value.trim().length > 100) {
-                      return "Nama organisasi maksimal 100 karakter!";
-                    }
-                    return null;
-                  },
-                ),
-              ),
-
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: DropdownButtonFormField<String>(
                   decoration: InputDecoration(
-                    labelText: "Tipe Pengalaman",
-                    prefixIcon: const Icon(Icons.work_outline),
+                    hintText: "Contoh: Fakultas Ilmu Komputer UI",
+                    labelText: "Nama Organisasi / Perusahaan *",
+                    prefixIcon: const Icon(Icons.category_outlined),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                   ),
-                  initialValue: _employmentType,
-                  items: _employmentTypes
+                  initialValue: _category,
+                  items: _categoryOptions.entries
                       .map(
-                        (type) =>
-                            DropdownMenuItem(value: type, child: Text(type)),
+                        (entry) => DropdownMenuItem<String>(
+                          value: entry.key,
+                          child: Text(entry.value),
+                        ),
                       )
                       .toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _employmentType = newValue!;
-                    });
-                  },
+                  onChanged: _isSubmitting
+                      ? null
+                      : (newValue) {
+                          if (newValue != null) {
+                            setState(() => _category = newValue);
+                          }
+                        },
                 ),
               ),
-
               Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: FormField<bool>(
-                  validator: (_) {
-                    if (_startDate == null || _endDate == null) {
-                      return "Tanggal mulai dan tanggal selesai wajib dipilih!";
-                    }
-                    if (_endDate!.isBefore(_startDate!)) {
-                      return "Tanggal selesai tidak boleh mendahului tanggal mulai!";
-                    }
-                    return null;
-                  },
-                  builder: (FormFieldState<bool> fieldState) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () =>
-                                    _selectDate(context, isStart: true),
-                                icon: const Icon(Icons.calendar_today_outlined),
-                                label: Text(
-                                  "Mulai: ${_formatDate(_startDate)}",
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () =>
-                                    _selectDate(context, isStart: false),
-                                icon: const Icon(
-                                  Icons.event_available_outlined,
-                                ),
-                                label: Text(
-                                  "Selesai: ${_formatDate(_endDate)}",
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (fieldState.hasError)
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              top: 6.0,
-                              left: 12.0,
-                            ),
-                            child: Text(
-                              fieldState.errorText!,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.error,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-
-              Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(8),
                 child: TextFormField(
                   maxLines: 4,
                   decoration: InputDecoration(
-                    hintText: "Jelaskan kontribusi dan tanggung jawab utama...",
-                    labelText: "Deskripsi Pengalaman *",
+                    hintText: 'Jelaskan kontribusi dan tanggung jawab utama...',
+                    labelText: 'Description *',
                     alignLabelWithHint: true,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onChanged: (String? value) {
-                    setState(() {
-                      _description = value ?? "";
-                    });
-                  },
-                  validator: (String? value) {
+                  onChanged: (value) => _description = value,
+                  validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return "Deskripsi pengalaman tidak boleh kosong!";
-                    }
-                    if (value.trim().length < 10) {
-                      return "Deskripsi minimal terdiri dari 10 karakter!";
+                      return 'Description tidak boleh kosong!';
                     }
                     return null;
                   },
                 ),
               ),
-
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(8),
                 child: TextFormField(
                   keyboardType: TextInputType.url,
                   decoration: InputDecoration(
-                    hintText: "https://linkedin.com/in/username (opsional)",
-                    labelText: "Tautan Bukti / Sertifikat",
-                    prefixIcon: const Icon(Icons.link),
+                    hintText: 'https://example.com/thumbnail.png (opsional)',
+                    labelText: 'Thumbnail URL (Optional)',
+                    prefixIcon: const Icon(Icons.image_outlined),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onChanged: (String? value) {
-                    setState(() {
-                      _proofLink = value ?? "";
-                    });
-                  },
-                  validator: (String? value) {
-                    if (value != null && value.trim().isNotEmpty) {
-                      final uri = Uri.tryParse(value.trim());
-                      final isValidUrl =
-                          uri != null &&
-                          (uri.scheme == 'http' || uri.scheme == 'https') &&
-                          uri.host.isNotEmpty;
-                      if (!isValidUrl) {
-                        return "Masukkan format URL yang valid (diawali http:// atau https://)!";
-                      }
-                    }
-                    return null;
-                  },
+                  onChanged: (value) => _thumbnail = value,
+                  validator: _validateOptionalUrl,
                 ),
               ),
-
               const SizedBox(height: 12),
-
               Align(
                 alignment: Alignment.bottomCenter,
                 child: Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(8),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       OutlinedButton.icon(
-                        onPressed: _resetForm,
+                        onPressed: _isSubmitting ? null : _resetForm,
                         icon: const Icon(Icons.refresh),
-                        label: const Text("Reset"),
+                        label: const Text('Reset'),
                       ),
                       const SizedBox(width: 16),
                       ElevatedButton.icon(
-                        style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.all(
-                            primaryColor,
-                          ),
-                          padding: WidgetStateProperty.all(
-                            const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
-                            ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
                           ),
                         ),
-                        onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return AlertDialog(
-                                  title: const Text(
-                                    'Pengalaman berhasil disimpan!',
-                                  ),
-                                  content: SingleChildScrollView(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text('Posisi: ${_role.trim()}'),
-                                        Text(
-                                          'Organisasi: ${_organization.trim()}',
-                                        ),
-                                        Text('Tipe: $_employmentType'),
-                                        Text(
-                                          'Periode: ${_formatDate(_startDate)} s.d. ${_formatDate(_endDate)}',
-                                        ),
-                                        Text(
-                                          'Deskripsi: ${_description.trim()}',
-                                        ),
-                                        Text(
-                                          'Tautan: ${_proofLink.trim().isEmpty ? "-" : _proofLink.trim()}',
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      child: const Text('OK'),
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                        _resetForm();
-                                      },
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          }
-                        },
-                        icon: const Icon(
-                          Icons.save_outlined,
-                          color: Colors.white,
-                        ),
-                        label: const Text(
-                          "Simpan",
-                          style: TextStyle(color: Colors.white),
-                        ),
+                        onPressed: _isSubmitting ? null : _submit,
+                        icon: _isSubmitting
+                            ? const SizedBox(
+                                height: 18,
+                                width: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(Icons.save_outlined),
+                        label: Text(_isSubmitting ? 'Menyimpan...' : 'Save'),
                       ),
                     ],
                   ),

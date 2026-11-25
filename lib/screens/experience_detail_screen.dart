@@ -9,60 +9,88 @@ class ExperienceDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final period = experience.endDate.isEmpty
-        ? '${experience.startDate} - Present'
-        : '${experience.startDate} - ${experience.endDate}';
+    final categoryLabel = experience.categoryDisplay.isNotEmpty
+        ? experience.categoryDisplay
+        : experience.category;
+    final imageUrl = experience.thumbnail.isNotEmpty
+        ? experience.thumbnail
+        : experience.experienceImg;
 
     return Scaffold(
       appBar: AppBar(title: Text(experience.title)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  experience.title,
-                  style: textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (imageUrl.isNotEmpty)
+                Image.network(
+                  imageUrl,
+                  width: double.infinity,
+                  height: 200,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => const SizedBox.shrink(),
                 ),
-                const SizedBox(height: 12),
-                _DetailRow(
-                  icon: Icons.badge_outlined,
-                  label: 'Role',
-                  value: experience.role,
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      experience.title,
+                      style: textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+                    _DetailRow(
+                      icon: Icons.category_outlined,
+                      label: 'Category',
+                      value: categoryLabel,
+                    ),
+                    const SizedBox(height: 8),
+                    _DetailRow(
+                      icon: Icons.timelapse_outlined,
+                      label: 'Status',
+                      value: experience.isOngoing ? 'Ongoing' : 'Completed',
+                    ),
+                    const SizedBox(height: 8),
+                    _DetailRow(
+                      icon: Icons.star_outline,
+                      label: 'Stars',
+                      value:
+                          '${experience.starCount}'
+                          '${experience.isStarred ? ' (Starred by you)' : ''}',
+                    ),
+                    if (experience.starredByNames.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      _DetailRow(
+                        icon: Icons.people_outline,
+                        label: 'Starred By',
+                        value: experience.starredByNames,
+                      ),
+                    ],
+                    const Divider(height: 28),
+                    Text(
+                      'Description',
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      experience.description.isEmpty
+                          ? 'No description provided.'
+                          : experience.description,
+                      style: textTheme.bodyMedium,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                _DetailRow(
-                  icon: Icons.business_outlined,
-                  label: 'Organization',
-                  value: experience.organization,
-                ),
-                const SizedBox(height: 8),
-                _DetailRow(
-                  icon: Icons.calendar_today_outlined,
-                  label: 'Period',
-                  value: period,
-                ),
-                const Divider(height: 28),
-                Text(
-                  'Description',
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  experience.description.isEmpty
-                      ? 'No description provided.'
-                      : experience.description,
-                  style: textTheme.bodyMedium,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

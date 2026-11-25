@@ -6,12 +6,16 @@ part 'experience.g.dart';
 class Experience {
   const Experience({
     required this.title,
-    required this.role,
-    required this.organization,
-    required this.startDate,
-    this.endDate = '',
-    this.description = '',
+    required this.description,
+    required this.category,
     this.id,
+    this.thumbnail = '',
+    this.categoryDisplay = '',
+    this.isOngoing = false,
+    this.starCount = 0,
+    this.isStarred = false,
+    this.experienceImg = '',
+    this.starredByNames = '',
   });
 
   factory Experience.fromJson(Map<String, dynamic> json) =>
@@ -20,15 +24,29 @@ class Experience {
   @JsonKey(includeToJson: false)
   final String? id;
   final String title;
-  final String role;
-  final String organization;
-  final String startDate;
-
-  @JsonKey(defaultValue: '')
-  final String endDate;
-
-  @JsonKey(defaultValue: '')
   final String description;
+  final String category;
+
+  @JsonKey(defaultValue: '')
+  final String thumbnail;
+
+  @JsonKey(includeToJson: false, defaultValue: '')
+  final String categoryDisplay;
+
+  @JsonKey(includeToJson: false, defaultValue: false)
+  final bool isOngoing;
+
+  @JsonKey(includeToJson: false, defaultValue: 0)
+  final int starCount;
+
+  @JsonKey(includeToJson: false, defaultValue: false)
+  final bool isStarred;
+
+  @JsonKey(defaultValue: '')
+  final String experienceImg;
+
+  @JsonKey(includeToJson: false, defaultValue: '')
+  final String starredByNames;
 
   Map<String, dynamic> toJson() => _$ExperienceToJson(this);
 }
