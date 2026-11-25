@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/models/experience.dart';
 
 class ExperienceDetailScreen extends StatelessWidget {
-  const ExperienceDetailScreen({
-    required this.experience,
-    super.key,
-  });
+  const ExperienceDetailScreen({required this.experience, super.key});
 
   final Experience experience;
 

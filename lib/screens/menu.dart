@@ -78,7 +78,8 @@ class MyHomePage extends StatelessWidget {
                       // shrinkWrap agar ukuran kisi menyesuaikan tinggi konten anak.
                       shrinkWrap: true,
                       children: items.map((ItemHomepage item) {
-                        if (item.name == 'Lihat Experience' || item.name == 'Tambah Experience') {
+                        if (item.name == 'Lihat Experience' ||
+                            item.name == 'Tambah Experience') {
                           return ExperienceCard(item);
                         }
                         return ItemCard(item);

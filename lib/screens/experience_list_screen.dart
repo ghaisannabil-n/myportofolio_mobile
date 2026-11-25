@@ -76,9 +76,7 @@ class _ExperienceListScreenState extends State<ExperienceListScreen> {
                       constraints: BoxConstraints(
                         minHeight: constraints.maxHeight,
                       ),
-                      child: const Center(
-                        child: Text('No experiences found.'),
-                      ),
+                      child: const Center(child: Text('No experiences found.')),
                     ),
                   );
                 },
@@ -133,9 +131,8 @@ class _ExperienceListScreenState extends State<ExperienceListScreen> {
                       Navigator.push<void>(
                         context,
                         MaterialPageRoute<void>(
-                          builder: (_) => ExperienceDetailScreen(
-                            experience: experience,
-                          ),
+                          builder: (_) =>
+                              ExperienceDetailScreen(experience: experience),
                         ),
                       );
                     },
